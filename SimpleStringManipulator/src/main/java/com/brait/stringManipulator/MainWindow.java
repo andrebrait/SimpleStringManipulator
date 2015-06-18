@@ -2,15 +2,8 @@ package com.brait.stringManipulator;
 
 import java.awt.EventQueue;
 
-import javafx.stage.FileChooser;
-
 import javax.swing.JFrame;
 
-import java.awt.Window.Type;
-
-import javax.swing.JEditorPane;
-
-import java.awt.BorderLayout;
 import java.awt.Toolkit;
 
 import javax.swing.JFileChooser;
@@ -19,7 +12,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JMenuBar;
 import javax.swing.JMenu;
 import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.JMenuItem;
 
 import java.awt.event.ActionListener;
@@ -27,38 +19,18 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.JTextPane;
 
-import com.jgoodies.forms.layout.FormLayout;
-import com.jgoodies.forms.layout.ColumnSpec;
-import com.jgoodies.forms.layout.RowSpec;
-
-import java.awt.GridBagLayout;
-
-import javax.swing.BoxLayout;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 
-import java.awt.TextArea;
-
 import javax.swing.JSeparator;
-import javax.swing.ScrollPaneConstants;
-
-import java.awt.Component;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.List;
-
-import javax.swing.border.EtchedBorder;
-import javax.swing.JToolBar;
-
 import org.apache.commons.lang3.StringUtils;
 import org.mozilla.universalchardet.UniversalDetector;
 
