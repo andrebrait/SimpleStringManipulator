@@ -38,7 +38,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>com.lfa.MainClass</mainClass>
+							<mainClass>com.brait.stringManipulator.MainWindow</mainClass>
 						</manifest>
 					</archive>
 					<descriptorRefs>
