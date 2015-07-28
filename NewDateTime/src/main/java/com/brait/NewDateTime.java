@@ -160,44 +160,44 @@ public class NewDateTime implements Serializable {
 		this.setDataLocal(Calendar.getInstance(timeZone).getTime());
 	}
 
-	/**
-	 * Cria uma instância de DateTimeZone
-	 * 
-	 * @param data
-	 * @param pattern
-	 * @param timeZone
-	 */
-	public DateTimeZoneWithUTC(String data, String pattern, TimeZone timeZone) {
-		SimpleDateFormat df = new SimpleDateFormat(pattern);
+//	/**
+//	 * Cria uma instância de DateTimeZone
+//	 * 
+//	 * @param data
+//	 * @param pattern
+//	 * @param timeZone
+//	 */
+//	public DateTimeZoneWithUTC(String data, String pattern, TimeZone timeZone) {
+//		SimpleDateFormat df = new SimpleDateFormat(pattern);
+//
+//		try {
+//			this.dataLocal = DateUtils.toTimestamp(df.parse(data), timeZone);
+//			this.dataUTC = DateUtils.toGmtTimestamp(df.parse(data));
+//			this.offSetLocal = timeZone.getRawOffset()
+//					/ DateUtils.MILLIS_PER_HOUR;
+//		} catch (ParseException e) {
+//
+//		}
+//	}
 
-		try {
-			this.dataLocal = DateUtils.toTimestamp(df.parse(data), timeZone);
-			this.dataUTC = DateUtils.toGmtTimestamp(df.parse(data));
-			this.offSetLocal = timeZone.getRawOffset()
-					/ DateUtils.MILLIS_PER_HOUR;
-		} catch (ParseException e) {
-
-		}
-	}
-
-	/**
-	 * Cria uma instância de DateTimeZone
-	 * 
-	 * @param data
-	 * @param pattern
-	 * @param timeZone
-	 */
-	public DateTimeZoneWithUTC(Date data, TimeZone timeZone) {
-
-		try {
-			this.dataLocal = DateUtils.toTimestamp(data, timeZone);
-			this.dataUTC = DateUtils.toGmtTimestamp(data);
-			this.offSetLocal = timeZone.getRawOffset()
-					/ DateUtils.MILLIS_PER_HOUR;
-		} catch (Exception e) {
-
-		}
-	}
+//	/**
+//	 * Cria uma instância de DateTimeZone
+//	 * 
+//	 * @param data
+//	 * @param pattern
+//	 * @param timeZone
+//	 */
+//	public DateTimeZoneWithUTC(Date data, TimeZone timeZone) {
+//
+//		try {
+//			this.dataLocal = DateUtils.toTimestamp(data, timeZone);
+//			this.dataUTC = DateUtils.toGmtTimestamp(data);
+//			this.offSetLocal = timeZone.getRawOffset()
+//					/ DateUtils.MILLIS_PER_HOUR;
+//		} catch (Exception e) {
+//
+//		}
+//	}
 
 	public Timestamp getDataUTC() {
 		return (Timestamp) dataUTC.clone();
