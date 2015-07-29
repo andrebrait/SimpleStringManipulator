@@ -1,6 +1,5 @@
 package com.brait.configuration;
 
-
 import java.util.Properties;
 
 import javax.persistence.EntityManagerFactory;
@@ -25,7 +24,7 @@ import com.zaxxer.hikari.HikariDataSource;
  */
 @Configuration
 @EnableTransactionManagement
-@EnableJpaRepositories(basePackages = "com.sigamfe.repository")
+@EnableJpaRepositories(basePackages = "com.brait.repository")
 public class PersistenceConfiguration {
 
 	private static String DB_HOSTNAME = "localhost", DB_PORT = "52000", DB_PASSWORD;
@@ -38,7 +37,7 @@ public class PersistenceConfiguration {
 		DB_PASSWORD = dB_PASSWORD;
 	}
 
-	private static String DB_USERNAME = "iria", AUTOCONNECTION_TEST_QUERY = "SELECT 1", DB_DATABASE = "sigamfe";
+	private static String DB_USERNAME = "iria", AUTOCONNECTION_TEST_QUERY = "SELECT 1", DB_DATABASE = "iria";
 	private static boolean AUTO_COMMIT = true;
 
 	@Bean(destroyMethod = "close")
@@ -54,9 +53,8 @@ public class PersistenceConfiguration {
 		return new HikariDataSource(hikariConfig);
 	}
 
-	private static String PACKAGES_TO_SCAN = "com.sigamfe.model", HIBERNATE_DIALECT = "org.hibernate.dialect.MySQL5InnoDBDialect",
-			HIBERNATE_EJB_NAMING_STRATEGY = "org.hibernate.cfg.ImprovedNamingStrategy", HIBERNATE_SHOW_SQL = "false", HIBERNATE_FORMAT_SQL = "true",
-			HIBERNATE_HBM2DDL_AUTO = "validate";
+	private static String PACKAGES_TO_SCAN = "com.brait.model", HIBERNATE_DIALECT = "org.hibernate.dialect.MySQL5InnoDBDialect",
+			HIBERNATE_EJB_NAMING_STRATEGY = "org.hibernate.cfg.ImprovedNamingStrategy", HIBERNATE_SHOW_SQL = "false", HIBERNATE_FORMAT_SQL = "true", HIBERNATE_HBM2DDL_AUTO = "validate";
 
 	@Bean
 	public LocalContainerEntityManagerFactoryBean entityManagerFactory(DataSource dataSource) {

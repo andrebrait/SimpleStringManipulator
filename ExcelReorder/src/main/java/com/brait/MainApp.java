@@ -35,6 +35,7 @@ public class MainApp {
 			Row row = rowIterator.next();
 
 			transcriptOrigList.add(row.getCell(0).getStringCellValue());
+			
 			transcriptMap.put(row.getCell(2).getStringCellValue(),
 					row.getCell(3).getStringCellValue());
 		}
