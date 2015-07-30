@@ -92,7 +92,7 @@ public class MainApp {
 					if (!ensemblRepository.exists(e.getEnsembl_p())) {
 						e = ensemblRepository.save(e);
 					}
-					FoldPk id = new FoldPk(e.getEnsembl_p(), "DOWN", fields[0], fields[1]);
+					FoldPk id = new FoldPk(e.getEnsembl_p(), "DOWN", Integer.parseInt(fields[0]), Integer.parseInt(fields[1]));
 					if (!foldChangeRepository.exists(id)) {
 						FoldChange f = new FoldChange(id, getNullSafeBigDecimalValue(curRow.getCell(2), 8), getNullSafeBigDecimalValue(curRow.getCell(3), 8),
 								getNullSafeStringValue(curRow.getCell(4)), getNullSafeStringValue(curRow.getCell(8)));
@@ -119,9 +119,11 @@ public class MainApp {
 						go = goRepository.save(go);
 					}
 					for (String testSeq : StringUtils.split(StringUtils.deleteWhitespace(curRow.getCell(6).getStringCellValue()), ",")) {
-						DePk id = new DePk(go.getGoid(), testSeq, fields[1], fases[0], fases[1]);
+						DePk id = new DePk(go.getGoid(), testSeq, fields[1], Integer.parseInt(fases[0]), Integer.parseInt(fases[1]));
 						if (!deRepository.exists(id)) {
 							deRepository.save(new De(id, getNullSafeBigDecimalValue(curRow.getCell(3), 30), getNullSafeBigDecimalValue(curRow.getCell(4), 30), curRow.getCell(5).getStringCellValue()));
+						} else {
+							System.out.println("Registro duplicado: " + id.toString());
 						}
 					}
 				}
@@ -142,10 +144,15 @@ public class MainApp {
 						go = goRepository.save(go);
 					}
 					for (String testSeq : StringUtils.split(StringUtils.deleteWhitespace(curRow.getCell(6).getStringCellValue()), ",")) {
-						ExPk id = new ExPk(go.getGoid(), testSeq, fases[1], fases[0]);
+						if (!ensemblRepository.exists(testSeq)) {
+							ensemblRepository.save(new Ensembl(testSeq, "EXCL NO ".concat(go.getGoid())));
+						}
+						ExPk id = new ExPk(go.getGoid(), testSeq, Integer.parseInt(fases[1]), Integer.parseInt(fases[0]));
 						if (!exclusivoRepository.exists(id)) {
 							exclusivoRepository.save(new Exclusivo(id, getNullSafeBigDecimalValue(curRow.getCell(3), 30), getNullSafeBigDecimalValue(curRow.getCell(4), 30), curRow.getCell(5)
 									.getStringCellValue()));
+						} else {
+							System.out.println("Registro duplicado: " + id.toString());
 						}
 					}
 				}

@@ -52,14 +52,12 @@ public class De implements Serializable {
 		private String upDown;
 
 		@NotNull
-		@Size(max = 4)
-		@Column(name = "FASE1", nullable = false, length = 4)
-		private String fase1;
+		@Column(name = "FASE1", nullable = false)
+		private Integer fase1;
 
 		@NotNull
-		@Size(max = 4)
-		@Column(name = "FASE2", nullable = false, length = 4)
-		private String fase2;
+		@Column(name = "FASE2", nullable = false)
+		private Integer fase2;
 
 	}
 
