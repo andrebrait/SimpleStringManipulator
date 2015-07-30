@@ -119,7 +119,7 @@ public class MainApp {
 						go = goRepository.save(go);
 					}
 					for (String testSeq : StringUtils.split(StringUtils.deleteWhitespace(curRow.getCell(6).getStringCellValue()), ",")) {
-						DePk id = new DePk(fields[1], fases[0], fases[1], go.getGoid(), testSeq);
+						DePk id = new DePk(go.getGoid(), testSeq, fields[1], fases[0], fases[1]);
 						if (!deRepository.exists(id)) {
 							deRepository.save(new De(id, getNullSafeBigDecimalValue(curRow.getCell(3), 30), getNullSafeBigDecimalValue(curRow.getCell(4), 30), curRow.getCell(5).getStringCellValue()));
 						}
@@ -142,7 +142,7 @@ public class MainApp {
 						go = goRepository.save(go);
 					}
 					for (String testSeq : StringUtils.split(StringUtils.deleteWhitespace(curRow.getCell(6).getStringCellValue()), ",")) {
-						ExPk id = new ExPk(fases[1], fases[0], go.getGoid(), testSeq);
+						ExPk id = new ExPk(go.getGoid(), testSeq, fases[1], fases[0]);
 						if (!exclusivoRepository.exists(id)) {
 							exclusivoRepository.save(new Exclusivo(id, getNullSafeBigDecimalValue(curRow.getCell(3), 30), getNullSafeBigDecimalValue(curRow.getCell(4), 30), curRow.getCell(5)
 									.getStringCellValue()));
