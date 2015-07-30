@@ -109,7 +109,7 @@ public class MainApp {
 			for (int i = 0; i < de.getNumberOfSheets(); i++) {
 				XSSFSheet curSheet = de.getSheetAt(i);
 				String[] fields = StringUtils.split(curSheet.getSheetName(), null);
-				String[] fases = StringUtils.split(fields[2], "X");
+				String[] fases = StringUtils.split(StringUtils.remove(fields[2], "T"), "X");
 				Iterator<Row> rowIterator = curSheet.iterator();
 				rowIterator.next();
 				while (rowIterator.hasNext()) {
@@ -132,7 +132,7 @@ public class MainApp {
 			XSSFWorkbook ex = new XSSFWorkbook(fisEx);
 			for (int i = 0; i < ex.getNumberOfSheets(); i++) {
 				XSSFSheet curSheet = ex.getSheetAt(i);
-				String[] fases = StringUtils.split(StringUtils.remove(StringUtils.split(curSheet.getSheetName(), null)[3], ")"), "(");
+				String[] fases = StringUtils.split(StringUtils.remove(StringUtils.remove(StringUtils.split(curSheet.getSheetName(), null)[3], ")"), "T"), "(");
 				Iterator<Row> rowIterator = curSheet.iterator();
 				rowIterator.next();
 				while (rowIterator.hasNext()) {

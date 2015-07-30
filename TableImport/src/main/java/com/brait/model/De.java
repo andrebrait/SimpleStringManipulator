@@ -37,6 +37,16 @@ public class De implements Serializable {
 		private static final long serialVersionUID = -1465657459912772629L;
 
 		@NotNull
+		@Size(max = 11)
+		@Column(name = "GOID", nullable = false, length = 11)
+		private String goid;
+
+		@NotNull
+		@Size(max = 20)
+		@Column(name = "ENSEMBL_P", nullable = false, length = 20)
+		private String ensembl_p;
+
+		@NotNull
 		@Size(max = 4)
 		@Column(name = "UPDOWN", nullable = false, length = 4)
 		private String upDown;
@@ -50,16 +60,6 @@ public class De implements Serializable {
 		@Size(max = 4)
 		@Column(name = "FASE2", nullable = false, length = 4)
 		private String fase2;
-
-		@NotNull
-		@Size(max = 11)
-		@Column(name = "GOID", nullable = false, length = 11)
-		private String goid;
-
-		@NotNull
-		@Size(max = 20)
-		@Column(name = "ENSEMBL_P", nullable = false, length = 20)
-		private String ensembl_p;
 
 	}
 

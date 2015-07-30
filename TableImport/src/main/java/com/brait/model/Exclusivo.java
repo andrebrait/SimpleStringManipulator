@@ -37,16 +37,6 @@ public class Exclusivo implements Serializable {
 		private static final long serialVersionUID = -8043622830364121375L;
 
 		@NotNull
-		@Size(max = 4)
-		@Column(name = "FASE1", nullable = false, length = 4)
-		private String fase1;
-
-		@NotNull
-		@Size(max = 4)
-		@Column(name = "FASE2", nullable = false, length = 4)
-		private String fase2;
-
-		@NotNull
 		@Size(max = 11)
 		@Column(name = "GOID", nullable = false, length = 11)
 		private String goid;
@@ -55,6 +45,16 @@ public class Exclusivo implements Serializable {
 		@Size(max = 20)
 		@Column(name = "ENSEMBL_P", nullable = false, length = 20)
 		private String ensembl_p;
+
+		@NotNull
+		@Size(max = 4)
+		@Column(name = "FASE1", nullable = false, length = 4)
+		private String fase1;
+
+		@NotNull
+		@Size(max = 4)
+		@Column(name = "FASE2", nullable = false, length = 4)
+		private String fase2;
 
 	}
 
