@@ -1,6 +1,7 @@
 package com.brait.model;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
@@ -12,27 +13,28 @@ import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor
 @Entity
 @Table(name = "EXCLUSIVO")
 @Data
-@EqualsAndHashCode(of = "id")
+@EqualsAndHashCode(callSuper = false, of = "id")
 public class Exclusivo implements Serializable {
 
 	private static final long serialVersionUID = 1111389456353324504L;
 
+	@NoArgsConstructor
+	@AllArgsConstructor
 	@Embeddable
 	@Data
+	@EqualsAndHashCode(callSuper = false)
 	public static class ExPk implements Serializable {
 
 		private static final long serialVersionUID = -8043622830364121375L;
-
-		@NotNull
-		@Size(max = 4)
-		@Column(name = "UPDOWN", nullable = false, length = 4)
-		private String upDown;
 
 		@NotNull
 		@Size(max = 4)
@@ -59,23 +61,43 @@ public class Exclusivo implements Serializable {
 	@EmbeddedId
 	private ExPk id;
 
-	@NotNull
 	@ManyToOne
 	@JoinColumn(name = "GOID", insertable = false, updatable = false)
-	private Go goId;
+	private Go go;
 
-	@NotNull
 	@ManyToOne
 	@JoinColumn(name = "ENSEMBL_P", insertable = false, updatable = false)
-	private Ensembl ensembl_p;
+	private Ensembl ensembl;
 
-	public void setGoEnsembl_P(Ensembl dsLite) {
-		this.ensembl_p = dsLite;
-		this.id.setEnsembl_p(dsLite.getEnsembl_p());
+	@NotNull
+	@Column(name = "FDR", nullable = false, precision = 38, scale = 30)
+	private BigDecimal fdr;
+
+	@NotNull
+	@Column(name = "PVALUE", nullable = false, precision = 38, scale = 30)
+	private BigDecimal pValue;
+
+	@NotNull
+	@Size(max = 5)
+	@Column(name = "OVERUNDER", nullable = false, length = 5)
+	private String overUnder;
+
+	public void setEnsembl(Ensembl ensembl) {
+		this.ensembl = ensembl;
+		this.id.setEnsembl_p(ensembl.getEnsembl_p());
 	}
 
-	public void setGoId(Go goId) {
-		this.goId = goId;
-		this.id.setGoid(goId.getGoid());
+	public void setGo(Go go) {
+		this.go = go;
+		this.id.setGoid(go.getGoid());
 	}
+
+	public Exclusivo(ExPk id, BigDecimal fdr, BigDecimal pValue, String overUnder) {
+		super();
+		this.id = id;
+		this.fdr = fdr;
+		this.pValue = pValue;
+		this.overUnder = overUnder;
+	}
+
 }

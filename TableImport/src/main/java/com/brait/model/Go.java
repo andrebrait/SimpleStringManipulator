@@ -1,22 +1,22 @@
 package com.brait.model;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
 import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor
 @Entity
 @Table(name = "GO")
 @Data
@@ -40,21 +40,17 @@ public class Go implements Serializable {
 	@Column(name = "CATEGORY", nullable = false, columnDefinition = "char", length = 1)
 	private String category;
 
-	@NotNull
-	@Column(name = "FDR", nullable = false, precision = 12, scale = 6)
-	private BigDecimal fdr;
+	@OneToMany(mappedBy = "go", fetch = FetchType.LAZY)
+	private List<De> deList;
 
-	@NotNull
-	@Column(name = "PVALUE", nullable = false, precision = 12, scale = 6)
-	private BigDecimal pValue;
+	@OneToMany(mappedBy = "go", fetch = FetchType.LAZY)
+	private List<Exclusivo> exclusivoList;
 
-	@NotNull
-	@Size(max = 5)
-	@Column(name = "OVERUNDER", nullable = false, length = 5)
-	private String overUnder;
-
-	@ManyToMany
-	@JoinTable(name = "GO_ENSEMBL", joinColumns = { @JoinColumn(name = "GOID") }, inverseJoinColumns = { @JoinColumn(name = "ENSEMBL_P") })
-	private List<Ensembl> ensembl_ps;
+	public Go(String goid, String term, String category) {
+		super();
+		this.goid = goid;
+		this.term = term;
+		this.category = category;
+	}
 
 }
