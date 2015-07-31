@@ -5,10 +5,13 @@ import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.OneToMany;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -19,12 +22,12 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
 @Entity
-@Table(name = "GO")
+@Table(name = "TRANSCRITO")
 @Data
 @EqualsAndHashCode(of = "codigo")
-public class Go implements Serializable {
+public class Transcrito implements Serializable {
 
-	private static final long serialVersionUID = -7593036545247322391L;
+	private static final long serialVersionUID = 4271090010236201592L;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,28 +35,21 @@ public class Go implements Serializable {
 	private Long id;
 
 	@NotNull
-	@Size(max = 15)
-	@Column(name = "GOID", length = 15, unique = true, nullable = false)
+	@Size(max = 20)
+	@Column(name = "CODIGO", length = 20, unique = true, nullable = false)
 	private String codigo;
 
-	@NotNull
 	@Size(max = 300)
-	@Column(name = "TERM", nullable = false, length = 300)
-	private String term;
+	@Column(name = "GENENAME", nullable = true, length = 300)
+	private String geneName;
 
-	@NotNull
-	@Size(max = 1)
-	@Column(name = "CATEGORY", nullable = false, columnDefinition = "char", length = 1)
-	private String category;
+	@ManyToMany(fetch = FetchType.EAGER)
+	@JoinTable(name = "TRANSCRITO_PROTEINA", joinColumns = { @JoinColumn(name = "ID_TRANSCRITO") }, inverseJoinColumns = { @JoinColumn(name = "ID_PROTEINA") })
+	private List<Proteina> proteina;
 
-	@OneToMany(mappedBy = "go")
-	private List<Enriquecimento> enriquecimentos;
-
-	public Go(String codigo, String term, String category) {
+	public Transcrito(String codigo) {
 		super();
 		this.codigo = codigo;
-		this.term = term;
-		this.category = category;
 	}
 
 }

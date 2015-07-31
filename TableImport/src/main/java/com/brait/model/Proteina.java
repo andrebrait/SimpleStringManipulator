@@ -8,6 +8,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
@@ -19,12 +20,12 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
 @Entity
-@Table(name = "GO")
+@Table(name = "PROTEINA")
 @Data
 @EqualsAndHashCode(of = "codigo")
-public class Go implements Serializable {
+public class Proteina implements Serializable {
 
-	private static final long serialVersionUID = -7593036545247322391L;
+	private static final long serialVersionUID = 8093855517497691018L;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,28 +33,23 @@ public class Go implements Serializable {
 	private Long id;
 
 	@NotNull
-	@Size(max = 15)
-	@Column(name = "GOID", length = 15, unique = true, nullable = false)
+	@Size(max = 20)
+	@Column(name = "CODIGO", length = 20, unique = true, nullable = false)
 	private String codigo;
 
-	@NotNull
-	@Size(max = 300)
-	@Column(name = "TERM", nullable = false, length = 300)
-	private String term;
+	@Size(max = 20000)
+	@Column(name = "SEQUENCE", nullable = true, length = 20000)
+	private String sequence;
 
-	@NotNull
-	@Size(max = 1)
-	@Column(name = "CATEGORY", nullable = false, columnDefinition = "char", length = 1)
-	private String category;
+	@ManyToMany(mappedBy = "proteina")
+	private List<Transcrito> transcrito;
 
-	@OneToMany(mappedBy = "go")
+	@OneToMany(mappedBy = "proteina")
 	private List<Enriquecimento> enriquecimentos;
 
-	public Go(String codigo, String term, String category) {
+	public Proteina(String codigo) {
 		super();
 		this.codigo = codigo;
-		this.term = term;
-		this.category = category;
 	}
 
 }

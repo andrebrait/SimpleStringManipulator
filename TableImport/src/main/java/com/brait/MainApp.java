@@ -5,7 +5,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Scanner;
 
 import org.apache.commons.lang3.StringUtils;
@@ -19,34 +21,33 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import com.brait.configuration.PersistenceConfiguration;
-import com.brait.model.De;
-import com.brait.model.De.DePk;
-import com.brait.model.Ensembl;
-import com.brait.model.Exclusivo;
-import com.brait.model.Exclusivo.ExPk;
-import com.brait.model.FoldChange;
-import com.brait.model.FoldChange.FoldPk;
+import com.brait.model.Enriquecimento;
+import com.brait.model.Enriquecimento.EnriquecimentoPk;
 import com.brait.model.Go;
-import com.brait.repository.DeRepository;
-import com.brait.repository.EnsemblRepository;
-import com.brait.repository.ExclusivoRepository;
-import com.brait.repository.FoldChangeRepository;
+import com.brait.model.Proteina;
+import com.brait.model.Resultado;
+import com.brait.model.Resultado.ResultadoPk;
+import com.brait.model.Transcrito;
+import com.brait.repository.EnriquecimentoRepository;
 import com.brait.repository.GoRepository;
+import com.brait.repository.ProteinaRepository;
+import com.brait.repository.ResultadoRepository;
+import com.brait.repository.TranscritoRepository;
 
 @SpringBootApplication
 public class MainApp {
 
 	@Autowired
-	private DeRepository deRepository;
+	private EnriquecimentoRepository enriquecimentoRepository;
 
 	@Autowired
-	private EnsemblRepository ensemblRepository;
+	private ProteinaRepository proteinaRepository;
 
 	@Autowired
-	private ExclusivoRepository exclusivoRepository;
+	private ResultadoRepository resultadoRepository;
 
 	@Autowired
-	private FoldChangeRepository foldChangeRepository;
+	private TranscritoRepository transcritoRepository;
 
 	@Autowired
 	private GoRepository goRepository;
@@ -71,35 +72,59 @@ public class MainApp {
 
 	private void readAll() {
 
-		deRepository.deleteAllInBatch();
-		exclusivoRepository.deleteAllInBatch();
+		enriquecimentoRepository.deleteAllInBatch();
+		// resultadoRepository.deleteAllInBatch();
 		goRepository.deleteAllInBatch();
-		foldChangeRepository.deleteAllInBatch();
-		ensemblRepository.deleteAllInBatch();
+		proteinaRepository.deleteAll();
+		// transcritoRepository.deleteAll();
 
 		try {
+
+			FileInputStream fisResultados = new FileInputStream(new File("C://iria/tabelas-mãe/resultados DE erika.xlsx"));
+			XSSFWorkbook resultado = new XSSFWorkbook(fisResultados);
+			for (int i = 1; i < 7; i++) {
+				XSSFSheet curSheet = resultado.getSheetAt(i);
+				for (int j = 3; j <= curSheet.getLastRowNum(); j++) {
+					Row curRow = curSheet.getRow(j);
+					String codigo = curRow.getCell(0).getStringCellValue();
+					Transcrito t = transcritoRepository.findByCodigo(codigo);
+					if (t == null) {
+						t = transcritoRepository.save(new Transcrito(codigo));
+					}
+					Long fase1 = (i == 3 || i == 6) ? 5L : 0L;
+					Long fase2 = (i == 1 || i == 4) ? 5L : 10L;
+					ResultadoPk id = new ResultadoPk(t.getId(), fase1, fase2);
+					if (!resultadoRepository.exists(id)) {
+						Resultado r = new Resultado(new ResultadoPk(t.getId(), fase1, fase2), getNullSafeBigDecimalValue(curRow.getCell(15), 2), getNullSafeBigDecimalValue(
+								curRow.getCell(i == 4 ? 32 : 29), 2), i < 4 ? "COMPLETA" : "DE");
+						r = resultadoRepository.save(r);
+					}
+				}
+			}
+			resultado.close();
+
 			FileInputStream fisFoldChange = new FileInputStream(new File("C://iria/tabelas-filhas/fold change.xlsx"));
 			XSSFWorkbook foldChange = new XSSFWorkbook(fisFoldChange);
 			for (int i = 0; i < foldChange.getNumberOfSheets(); i++) {
 				XSSFSheet curSheet = foldChange.getSheetAt(i);
-				String[] fields = StringUtils.split(curSheet.getSheetName(), "x");
 				Iterator<Row> rowIterator = curSheet.iterator();
 				rowIterator.next();
 				while (rowIterator.hasNext()) {
 					Row curRow = rowIterator.next();
-					Ensembl e = null;
-					e = new Ensembl(curRow.getCell(1).getStringCellValue(), curRow.getCell(0).getStringCellValue());
-					if (!ensemblRepository.exists(e.getEnsembl_p())) {
-						e = ensemblRepository.save(e);
+					String codT = curRow.getCell(0).getStringCellValue();
+					String codP = curRow.getCell(1).getStringCellValue();
+					Transcrito t = transcritoRepository.findByCodigo(codT);
+					Proteina p = proteinaRepository.findByCodigo(codP);
+					if (p == null) {
+						p = new Proteina(codP);
+						p.setSequence(getNullSafeStringValue(curRow.getCell(8)));
+						p = proteinaRepository.save(p);
 					}
-					FoldPk id = new FoldPk(e.getEnsembl_p(), "DOWN", Integer.parseInt(fields[0]), Integer.parseInt(fields[1]));
-					if (!foldChangeRepository.exists(id)) {
-						FoldChange f = new FoldChange(id, getNullSafeBigDecimalValue(curRow.getCell(2), 8), getNullSafeBigDecimalValue(curRow.getCell(3), 8),
-								getNullSafeStringValue(curRow.getCell(4)), getNullSafeStringValue(curRow.getCell(8)));
-						f = foldChangeRepository.save(f);
-					} else {
-						System.out.println("Registro duplicado: " + id.toString());
+					t.setGeneName(getNullSafeStringValue(curRow.getCell(4)));
+					if (!t.getProteina().contains(p)) {
+						t.getProteina().add(p);
 					}
+					t = transcritoRepository.save(t);
 				}
 			}
 			foldChange.close();
@@ -108,56 +133,69 @@ public class MainApp {
 			XSSFWorkbook de = new XSSFWorkbook(fisDe);
 			for (int i = 0; i < de.getNumberOfSheets(); i++) {
 				XSSFSheet curSheet = de.getSheetAt(i);
-				String[] fields = StringUtils.split(curSheet.getSheetName(), null);
-				String[] fases = StringUtils.split(StringUtils.remove(fields[2], "T"), "X");
 				Iterator<Row> rowIterator = curSheet.iterator();
 				rowIterator.next();
 				while (rowIterator.hasNext()) {
 					Row curRow = rowIterator.next();
-					Go go = new Go(curRow.getCell(0).getStringCellValue(), curRow.getCell(1).getStringCellValue(), curRow.getCell(2).getStringCellValue());
-					if (!goRepository.exists(go.getGoid())) {
-						go = goRepository.save(go);
+					String codGo = curRow.getCell(0).getStringCellValue();
+					Go go = goRepository.findByCodigo(codGo);
+					if (go == null) {
+						go = goRepository.save(new Go(curRow.getCell(0).getStringCellValue(), curRow.getCell(1).getStringCellValue(), curRow.getCell(2).getStringCellValue()));
 					}
+					List<Enriquecimento> toSave = new ArrayList<>();
 					for (String testSeq : StringUtils.split(StringUtils.deleteWhitespace(curRow.getCell(6).getStringCellValue()), ",")) {
-						DePk id = new DePk(go.getGoid(), testSeq, fields[1], Integer.parseInt(fases[0]), Integer.parseInt(fases[1]));
-						if (!deRepository.exists(id)) {
-							deRepository.save(new De(id, getNullSafeBigDecimalValue(curRow.getCell(3), 30), getNullSafeBigDecimalValue(curRow.getCell(4), 30), curRow.getCell(5).getStringCellValue()));
-						} else {
-							System.out.println("Registro duplicado: " + id.toString());
+						Proteina prot = proteinaRepository.findByCodigo(testSeq);
+						EnriquecimentoPk eId = new EnriquecimentoPk(go.getId(), prot.getId());
+						if (!enriquecimentoRepository.exists(eId)) {
+							Enriquecimento e = new Enriquecimento(eId, getNullSafeBigDecimalValue(curRow.getCell(3), 30), getNullSafeBigDecimalValue(curRow.getCell(4), 30));
+							toSave.add(e);
 						}
 					}
+					enriquecimentoRepository.save(toSave);
 				}
 			}
 			de.close();
-
-			FileInputStream fisEx = new FileInputStream(new File("C://iria/tabelas-mãe/enriquecimentos GENES EXCLUSIVOS.xlsx"));
-			XSSFWorkbook ex = new XSSFWorkbook(fisEx);
-			for (int i = 0; i < ex.getNumberOfSheets(); i++) {
-				XSSFSheet curSheet = ex.getSheetAt(i);
-				String[] fases = StringUtils.split(StringUtils.remove(StringUtils.remove(StringUtils.split(curSheet.getSheetName(), null)[3], ")"), "T"), "(");
-				Iterator<Row> rowIterator = curSheet.iterator();
-				rowIterator.next();
-				while (rowIterator.hasNext()) {
-					Row curRow = rowIterator.next();
-					Go go = new Go(curRow.getCell(0).getStringCellValue(), curRow.getCell(1).getStringCellValue(), curRow.getCell(2).getStringCellValue());
-					if (!goRepository.exists(go.getGoid())) {
-						go = goRepository.save(go);
-					}
-					for (String testSeq : StringUtils.split(StringUtils.deleteWhitespace(curRow.getCell(6).getStringCellValue()), ",")) {
-						if (!ensemblRepository.exists(testSeq)) {
-							ensemblRepository.save(new Ensembl(testSeq, "EXCL NO ".concat(go.getGoid())));
-						}
-						ExPk id = new ExPk(go.getGoid(), testSeq, Integer.parseInt(fases[1]), Integer.parseInt(fases[0]));
-						if (!exclusivoRepository.exists(id)) {
-							exclusivoRepository.save(new Exclusivo(id, getNullSafeBigDecimalValue(curRow.getCell(3), 30), getNullSafeBigDecimalValue(curRow.getCell(4), 30), curRow.getCell(5)
-									.getStringCellValue()));
-						} else {
-							System.out.println("Registro duplicado: " + id.toString());
-						}
-					}
-				}
-			}
-			ex.close();
+			//
+			// FileInputStream fisEx = new FileInputStream(new
+			// File("C://iria/tabelas-mãe/enriquecimentos GENES EXCLUSIVOS.xlsx"));
+			// XSSFWorkbook ex = new XSSFWorkbook(fisEx);
+			// for (int i = 0; i < ex.getNumberOfSheets(); i++) {
+			// XSSFSheet curSheet = ex.getSheetAt(i);
+			// String[] fases =
+			// StringUtils.split(StringUtils.remove(StringUtils.remove(StringUtils.split(curSheet.getSheetName(),
+			// null)[3], ")"), "T"), "(");
+			// Iterator<Row> rowIterator = curSheet.iterator();
+			// rowIterator.next();
+			// while (rowIterator.hasNext()) {
+			// Row curRow = rowIterator.next();
+			// Go go = new Go(curRow.getCell(0).getStringCellValue(),
+			// curRow.getCell(1).getStringCellValue(),
+			// curRow.getCell(2).getStringCellValue());
+			// if (!goRepository.exists(go.getGoid())) {
+			// go = goRepository.save(go);
+			// }
+			// for (String testSeq :
+			// StringUtils.split(StringUtils.deleteWhitespace(curRow.getCell(6).getStringCellValue()),
+			// ",")) {
+			// if (!ensemblRepository.exists(testSeq)) {
+			// ensemblRepository.save(new Ensembl(testSeq,
+			// "EXCL NO ".concat(go.getGoid())));
+			// }
+			// ExPk id = new ExPk(go.getGoid(), testSeq,
+			// Integer.parseInt(fases[1]), Integer.parseInt(fases[0]));
+			// if (!exclusivoRepository.exists(id)) {
+			// exclusivoRepository.save(new Exclusivo(id,
+			// getNullSafeBigDecimalValue(curRow.getCell(3), 30),
+			// getNullSafeBigDecimalValue(curRow.getCell(4), 30),
+			// curRow.getCell(5)
+			// .getStringCellValue()));
+			// } else {
+			// System.out.println("Registro duplicado: " + id.toString());
+			// }
+			// }
+			// }
+			// }
+			// ex.close();
 
 		} catch (IOException e) {
 			e.printStackTrace();
