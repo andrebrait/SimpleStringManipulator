@@ -73,10 +73,10 @@ public class MainApp {
 	private void readAll() {
 
 		enriquecimentoRepository.deleteAllInBatch();
-		// resultadoRepository.deleteAllInBatch();
+		resultadoRepository.deleteAllInBatch();
 		goRepository.deleteAllInBatch();
 		proteinaRepository.deleteAll();
-		// transcritoRepository.deleteAll();
+		transcritoRepository.deleteAll();
 
 		try {
 
@@ -96,7 +96,7 @@ public class MainApp {
 					ResultadoPk id = new ResultadoPk(t.getId(), fase1, fase2);
 					if (!resultadoRepository.exists(id)) {
 						Resultado r = new Resultado(new ResultadoPk(t.getId(), fase1, fase2), getNullSafeBigDecimalValue(curRow.getCell(15), 2), getNullSafeBigDecimalValue(
-								curRow.getCell(i == 4 ? 32 : 29), 2), i < 4 ? "COMPLETA" : "DE");
+								curRow.getCell(i == 4 ? 32 : 29), 2), i < 4 ? "COMPLETA" : "DE", getNullSafeBigDecimalValue(curRow.getCell(1), 40));
 						r = resultadoRepository.save(r);
 					}
 				}
