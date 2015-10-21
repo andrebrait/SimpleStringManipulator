@@ -27,7 +27,7 @@ import com.zaxxer.hikari.HikariDataSource;
 @EnableJpaRepositories(basePackages = "com.brait.repository")
 public class PersistenceConfiguration {
 
-	private static String DB_HOSTNAME = "localhost", DB_PORT = "52000", DB_PASSWORD;
+	private static String DB_HOSTNAME = "brait.zapto.org", DB_PORT = "52000", DB_PASSWORD;
 
 	public static String getDB_PASSWORD() {
 		return DB_PASSWORD;
@@ -53,8 +53,10 @@ public class PersistenceConfiguration {
 		return new HikariDataSource(hikariConfig);
 	}
 
-	private static String PACKAGES_TO_SCAN = "com.brait.model", HIBERNATE_DIALECT = "org.hibernate.dialect.MySQL5InnoDBDialect",
-			HIBERNATE_EJB_NAMING_STRATEGY = "org.hibernate.cfg.ImprovedNamingStrategy", HIBERNATE_SHOW_SQL = "false", HIBERNATE_FORMAT_SQL = "true", HIBERNATE_HBM2DDL_AUTO = "validate";
+	private static String PACKAGES_TO_SCAN = "com.brait.model",
+			HIBERNATE_DIALECT = "org.hibernate.dialect.MySQL5InnoDBDialect",
+			HIBERNATE_EJB_NAMING_STRATEGY = "org.hibernate.cfg.ImprovedNamingStrategy", HIBERNATE_SHOW_SQL = "false",
+			HIBERNATE_FORMAT_SQL = "true", HIBERNATE_HBM2DDL_AUTO = "validate";
 
 	@Bean
 	public LocalContainerEntityManagerFactoryBean entityManagerFactory(DataSource dataSource) {

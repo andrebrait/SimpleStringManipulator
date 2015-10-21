@@ -14,6 +14,8 @@ import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
+import org.apache.commons.lang3.StringUtils;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -31,7 +33,14 @@ public class Resultado implements Serializable {
 	private final static BigDecimal TWO = new BigDecimal("2");
 	private final static BigDecimal MINUS_TWO = new BigDecimal("-2");
 	private final static BigDecimal POINT_OH_FIVE = new BigDecimal("0.05");
-	private final static String NON_SIG = "NONSIG";
+	public final static String NON_SIG = "NONSIG";
+	public final static String INVALID = "INVALID";
+	public final static String UP = "UP";
+	public final static String DOWN = "DOWN";
+	public final static String SAME = "SAME";
+	public final static String EXCLUSIVE = "EXCL";
+	public final static String TABELA_DE = "DE";
+	public final static String TABELA_COMPLETA = "COMPLETA";
 
 	@NoArgsConstructor
 	@AllArgsConstructor
@@ -99,30 +108,23 @@ public class Resultado implements Serializable {
 		foldChange = null;
 		log2foldChange = null;
 		if (mean1.compareTo(BigDecimal.ZERO) == 0 && mean2.compareTo(BigDecimal.ZERO) == 0) {
-			mudanca = "IND";
+			mudanca = INVALID;
 		} else if (mean1.compareTo(BigDecimal.ZERO) == 0) {
-			if (fdr.compareTo(POINT_OH_FIVE) > 0) {
-				mudanca = NON_SIG;
-			} else {
-				mudanca = "EXCL " + id.fase2;
-			}
+			mudanca = EXCLUSIVE + StringUtils.SPACE + id.fase2;
 		} else if (mean2.compareTo(BigDecimal.ZERO) == 0) {
-			if (fdr.compareTo(POINT_OH_FIVE) > 0) {
-				mudanca = NON_SIG;
-			} else {
-				mudanca = "EXCL " + id.fase1;
-			}
+			mudanca = EXCLUSIVE + StringUtils.SPACE + id.fase1;
 		} else {
 			foldChange = mean2.divide(mean1, 4, RoundingMode.HALF_EVEN);
-			log2foldChange = new BigDecimal(Double.toString(Math.log(foldChange.doubleValue()) / Math.log(2))).setScale(4, RoundingMode.HALF_EVEN);
+			log2foldChange = new BigDecimal(Double.toString(Math.log(foldChange.doubleValue()) / Math.log(2)))
+					.setScale(4, RoundingMode.HALF_EVEN);
 			if (fdr.compareTo(POINT_OH_FIVE) > 0) {
 				mudanca = NON_SIG;
 			} else if (log2foldChange.compareTo(TWO) >= 0) {
-				mudanca = "UP";
+				mudanca = UP;
 			} else if (log2foldChange.compareTo(MINUS_TWO) <= 0) {
-				mudanca = "DOWN";
+				mudanca = DOWN;
 			} else {
-				mudanca = "SAME";
+				mudanca = SAME;
 			}
 		}
 	}

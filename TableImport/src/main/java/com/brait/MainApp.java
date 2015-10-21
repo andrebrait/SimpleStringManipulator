@@ -80,7 +80,8 @@ public class MainApp {
 
 		try {
 
-			FileInputStream fisResultados = new FileInputStream(new File("C://iria/tabelas-mãe/resultados DE erika.xlsx"));
+			FileInputStream fisResultados = new FileInputStream(
+					new File("C://iria/tabelas-mãe/resultados DE erika.xlsx"));
 			XSSFWorkbook resultado = new XSSFWorkbook(fisResultados);
 			for (int i = 1; i < 7; i++) {
 				XSSFSheet curSheet = resultado.getSheetAt(i);
@@ -95,8 +96,11 @@ public class MainApp {
 					Long fase2 = (i == 1 || i == 4) ? 5L : 10L;
 					ResultadoPk id = new ResultadoPk(t.getId(), fase1, fase2);
 					if (!resultadoRepository.exists(id)) {
-						Resultado r = new Resultado(new ResultadoPk(t.getId(), fase1, fase2), getNullSafeBigDecimalValue(curRow.getCell(15), 2), getNullSafeBigDecimalValue(
-								curRow.getCell(i == 4 ? 32 : 29), 2), i < 4 ? "COMPLETA" : "DE", getNullSafeBigDecimalValue(curRow.getCell(1), 40));
+						Resultado r = new Resultado(new ResultadoPk(t.getId(), fase1, fase2),
+								getNullSafeBigDecimalValue(curRow.getCell(15), 2),
+								getNullSafeBigDecimalValue(curRow.getCell(i == 4 ? 32 : 29), 2),
+								i < 4 ? Resultado.TABELA_COMPLETA : Resultado.TABELA_DE,
+								getNullSafeBigDecimalValue(curRow.getCell(1), 40));
 						r = resultadoRepository.save(r);
 					}
 				}
@@ -140,14 +144,18 @@ public class MainApp {
 					String codGo = curRow.getCell(0).getStringCellValue();
 					Go go = goRepository.findByCodigo(codGo);
 					if (go == null) {
-						go = goRepository.save(new Go(curRow.getCell(0).getStringCellValue(), curRow.getCell(1).getStringCellValue(), curRow.getCell(2).getStringCellValue()));
+						go = goRepository.save(new Go(curRow.getCell(0).getStringCellValue(),
+								curRow.getCell(1).getStringCellValue(), curRow.getCell(2).getStringCellValue()));
 					}
 					List<Enriquecimento> toSave = new ArrayList<>();
-					for (String testSeq : StringUtils.split(StringUtils.deleteWhitespace(curRow.getCell(6).getStringCellValue()), ",")) {
+					for (String testSeq : StringUtils
+							.split(StringUtils.deleteWhitespace(curRow.getCell(6).getStringCellValue()), ",")) {
 						Proteina prot = proteinaRepository.findByCodigo(testSeq);
 						EnriquecimentoPk eId = new EnriquecimentoPk(go.getId(), prot.getId());
 						if (!enriquecimentoRepository.exists(eId)) {
-							Enriquecimento e = new Enriquecimento(eId, getNullSafeBigDecimalValue(curRow.getCell(3), 30), getNullSafeBigDecimalValue(curRow.getCell(4), 30));
+							Enriquecimento e = new Enriquecimento(eId,
+									getNullSafeBigDecimalValue(curRow.getCell(3), 30),
+									getNullSafeBigDecimalValue(curRow.getCell(4), 30));
 							toSave.add(e);
 						}
 					}
@@ -157,7 +165,8 @@ public class MainApp {
 			de.close();
 			//
 			// FileInputStream fisEx = new FileInputStream(new
-			// File("C://iria/tabelas-mãe/enriquecimentos GENES EXCLUSIVOS.xlsx"));
+			// File("C://iria/tabelas-mãe/enriquecimentos GENES
+			// EXCLUSIVOS.xlsx"));
 			// XSSFWorkbook ex = new XSSFWorkbook(fisEx);
 			// for (int i = 0; i < ex.getNumberOfSheets(); i++) {
 			// XSSFSheet curSheet = ex.getSheetAt(i);
