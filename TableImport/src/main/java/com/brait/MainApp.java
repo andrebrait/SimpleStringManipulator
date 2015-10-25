@@ -54,29 +54,76 @@ public class MainApp {
 
 	public static void main(String[] args) {
 
+		Scanner reader = new Scanner(System.in);
+
+		Runnable runObj = null;
+		final MainApp main = new MainApp();
+
 		if (PersistenceConfiguration.getDB_PASSWORD() == null) {
-			Scanner reader = new Scanner(System.in);
 			System.out.println("Entre com a senha do banco: ");
 			PersistenceConfiguration.setDB_PASSWORD(reader.nextLine());
+			System.out.println("Escolha uma opção: ");
+			System.out.println("\t1 - Apagar banco de dados e preencher com valores das tabelas iniciais");
+			System.out.println("\t2 - Consultar Uniprot");
+			System.out.println("\t3 - Consultar Ensembl");
+			int opt = reader.nextInt();
+
+			switch (opt) {
+				case 1:
+					runObj = new Runnable() {
+
+						@Override
+						public void run() {
+							main.eraseAndFill();
+						}
+					};
+
+					break;
+				case 2:
+					runObj = new Runnable() {
+
+						@Override
+						public void run() {
+							main.consultaUniprot();
+						}
+					};
+					break;
+				case 3:
+					runObj = new Runnable() {
+
+						@Override
+						public void run() {
+							main.consultaEnsembl();
+						}
+					};
+					break;
+				default:
+			}
+
 			reader.close();
 		}
 
 		ConfigurableApplicationContext applicationContext = SpringApplication.run(MainApp.class);
-		MainApp main = new MainApp();
-
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(main);
 
-		main.readAll();
-
+		runObj.run();
 	}
 
-	private void readAll() {
+	private void consultaUniprot() {
+		System.out.println("Consulta Uniprot");
+	}
 
-		enriquecimentoRepository.deleteAllInBatch();
-		resultadoRepository.deleteAllInBatch();
-		goRepository.deleteAllInBatch();
-		proteinaRepository.deleteAll();
-		transcritoRepository.deleteAll();
+	private void consultaEnsembl() {
+		System.out.println("Consulta Ensembl");
+	}
+
+	private void eraseAndFill() {
+
+		// enriquecimentoRepository.deleteAllInBatch();
+		// resultadoRepository.deleteAllInBatch();
+		// goRepository.deleteAllInBatch();
+		// proteinaRepository.deleteAll();
+		// transcritoRepository.deleteAll();
 
 		try {
 
@@ -91,17 +138,18 @@ public class MainApp {
 					Transcrito t = transcritoRepository.findByCodigo(codigo);
 					if (t == null) {
 						t = transcritoRepository.save(new Transcrito(codigo));
+						System.out.println("Inserindo transcrito " + t);
 					}
 					Long fase1 = (i == 3 || i == 6) ? 5L : 0L;
 					Long fase2 = (i == 1 || i == 4) ? 5L : 10L;
 					ResultadoPk id = new ResultadoPk(t.getId(), fase1, fase2);
 					if (!resultadoRepository.exists(id)) {
-						Resultado r = new Resultado(new ResultadoPk(t.getId(), fase1, fase2),
-								getNullSafeBigDecimalValue(curRow.getCell(15), 2),
+						Resultado r = new Resultado(id, getNullSafeBigDecimalValue(curRow.getCell(15), 2),
 								getNullSafeBigDecimalValue(curRow.getCell(i == 4 ? 32 : 29), 2),
 								i < 4 ? Resultado.TABELA_COMPLETA : Resultado.TABELA_DE,
 								getNullSafeBigDecimalValue(curRow.getCell(1), 40));
 						r = resultadoRepository.save(r);
+						System.out.println("Inserindo resultado " + r);
 					}
 				}
 			}
@@ -123,6 +171,7 @@ public class MainApp {
 						p = new Proteina(codP);
 						p.setSequence(getNullSafeStringValue(curRow.getCell(8)));
 						p = proteinaRepository.save(p);
+						System.out.println("Inserindo proteina " + p);
 					}
 					t.setGeneName(getNullSafeStringValue(curRow.getCell(4)));
 					if (!t.getProteina().contains(p)) {
@@ -146,6 +195,7 @@ public class MainApp {
 					if (go == null) {
 						go = goRepository.save(new Go(curRow.getCell(0).getStringCellValue(),
 								curRow.getCell(1).getStringCellValue(), curRow.getCell(2).getStringCellValue()));
+						System.out.println("Inserindo GO " + go);
 					}
 					List<Enriquecimento> toSave = new ArrayList<>();
 					for (String testSeq : StringUtils
@@ -157,54 +207,13 @@ public class MainApp {
 									getNullSafeBigDecimalValue(curRow.getCell(3), 30),
 									getNullSafeBigDecimalValue(curRow.getCell(4), 30));
 							toSave.add(e);
+							System.out.println("Inserindo enriquecimento " + e);
 						}
 					}
 					enriquecimentoRepository.save(toSave);
 				}
 			}
 			de.close();
-			//
-			// FileInputStream fisEx = new FileInputStream(new
-			// File("C://iria/tabelas-mãe/enriquecimentos GENES
-			// EXCLUSIVOS.xlsx"));
-			// XSSFWorkbook ex = new XSSFWorkbook(fisEx);
-			// for (int i = 0; i < ex.getNumberOfSheets(); i++) {
-			// XSSFSheet curSheet = ex.getSheetAt(i);
-			// String[] fases =
-			// StringUtils.split(StringUtils.remove(StringUtils.remove(StringUtils.split(curSheet.getSheetName(),
-			// null)[3], ")"), "T"), "(");
-			// Iterator<Row> rowIterator = curSheet.iterator();
-			// rowIterator.next();
-			// while (rowIterator.hasNext()) {
-			// Row curRow = rowIterator.next();
-			// Go go = new Go(curRow.getCell(0).getStringCellValue(),
-			// curRow.getCell(1).getStringCellValue(),
-			// curRow.getCell(2).getStringCellValue());
-			// if (!goRepository.exists(go.getGoid())) {
-			// go = goRepository.save(go);
-			// }
-			// for (String testSeq :
-			// StringUtils.split(StringUtils.deleteWhitespace(curRow.getCell(6).getStringCellValue()),
-			// ",")) {
-			// if (!ensemblRepository.exists(testSeq)) {
-			// ensemblRepository.save(new Ensembl(testSeq,
-			// "EXCL NO ".concat(go.getGoid())));
-			// }
-			// ExPk id = new ExPk(go.getGoid(), testSeq,
-			// Integer.parseInt(fases[1]), Integer.parseInt(fases[0]));
-			// if (!exclusivoRepository.exists(id)) {
-			// exclusivoRepository.save(new Exclusivo(id,
-			// getNullSafeBigDecimalValue(curRow.getCell(3), 30),
-			// getNullSafeBigDecimalValue(curRow.getCell(4), 30),
-			// curRow.getCell(5)
-			// .getStringCellValue()));
-			// } else {
-			// System.out.println("Registro duplicado: " + id.toString());
-			// }
-			// }
-			// }
-			// }
-			// ex.close();
 
 		} catch (IOException e) {
 			e.printStackTrace();
