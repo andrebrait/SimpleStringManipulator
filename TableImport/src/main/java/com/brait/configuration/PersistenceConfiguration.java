@@ -1,5 +1,6 @@
 package com.brait.configuration;
 
+import java.sql.SQLException;
 import java.util.Properties;
 
 import javax.persistence.EntityManagerFactory;
@@ -42,7 +43,12 @@ public class PersistenceConfiguration {
 
 	@Bean(destroyMethod = "close")
 	public DataSource dataSource() {
-		DataSource datasource = new MySQLDataSource(DB_HOSTNAME, Integer.parseInt(DB_PORT), DB_DATABASE);
+		DataSource datasource;
+		try {
+			datasource = new MySQLDataSource(DB_HOSTNAME, Integer.parseInt(DB_PORT), DB_DATABASE);
+		} catch (NumberFormatException | SQLException e) {
+			throw new RuntimeException(e);
+		}
 		HikariConfig hikariConfig = new HikariConfig();
 		hikariConfig.setDataSource(datasource);
 		hikariConfig.setUsername(DB_USERNAME);

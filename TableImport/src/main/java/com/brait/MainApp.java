@@ -1,7 +1,9 @@
 package com.brait;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -58,73 +60,91 @@ public class MainApp {
 
 		Runnable runObj = null;
 		final MainApp main = new MainApp();
+		int opt = 0;
 
 		if (PersistenceConfiguration.getDB_PASSWORD() == null) {
 			System.out.println("Entre com a senha do banco: ");
 			PersistenceConfiguration.setDB_PASSWORD(reader.nextLine());
 			System.out.println("Escolha uma opção: ");
 			System.out.println("\t1 - Apagar banco de dados e preencher com valores das tabelas iniciais");
-			System.out.println("\t2 - Consultar Uniprot");
-			System.out.println("\t3 - Consultar Ensembl");
-			int opt = reader.nextInt();
+			System.out.println("\t2 - Atualizar banco com os valores da tabela fold change");
+			System.out.println("\t3 - Consultar Uniprot");
+			System.out.println("\t4 - Consultar Ensembl");
+			System.out.println("\t5 - Gerar FASTA");
+			opt = reader.nextInt();
 
 			switch (opt) {
 				case 1:
-					runObj = new Runnable() {
-
-						@Override
-						public void run() {
-							main.eraseAndFill();
-						}
-					};
-
+					runObj = () -> main.eraseAndFill();
 					break;
 				case 2:
-					runObj = new Runnable() {
-
-						@Override
-						public void run() {
-							main.consultaUniprot();
-						}
-					};
+					runObj = () -> main.updateTables();
 					break;
 				case 3:
-					runObj = new Runnable() {
-
-						@Override
-						public void run() {
-							main.consultaEnsembl();
-						}
-					};
+					runObj = () -> main.consultaUniprot();
+					break;
+				case 4:
+					runObj = () -> main.consultaEnsembl();
+					break;
+				case 5:
+					runObj = () -> main.gerarFasta();
 					break;
 				default:
+					reader.close();
+					return;
 			}
 
 			reader.close();
 		}
 
-		ConfigurableApplicationContext applicationContext = SpringApplication.run(MainApp.class);
-		applicationContext.getAutowireCapableBeanFactory().autowireBean(main);
+		if (opt != 5) {
+			ConfigurableApplicationContext applicationContext = SpringApplication.run(MainApp.class);
+			applicationContext.getAutowireCapableBeanFactory().autowireBean(main);
+		}
 
 		runObj.run();
 	}
 
 	private void consultaUniprot() {
-		System.out.println("Consulta Uniprot");
+		List<Transcrito> allTrans = transcritoRepository.findAll();
+		for (Transcrito t : allTrans) {
+
+		}
 	}
 
 	private void consultaEnsembl() {
 		System.out.println("Consulta Ensembl");
 	}
 
-	private void eraseAndFill() {
+	private void gerarFasta() {
+		FileInputStream fisResultados;
+		BufferedWriter writer;
+		try {
+			fisResultados = new FileInputStream(new File("C://iria/genes para rede.xlsx"));
+			XSSFWorkbook resultado = new XSSFWorkbook(fisResultados);
+			for (int i = 0; i < resultado.getNumberOfSheets(); i++) {
+				XSSFSheet curSheet = resultado.getSheetAt(i);
+				String fileName = curSheet.getSheetName() + ".fasta";
+				writer = new BufferedWriter(new FileWriter(new File("C://iria/" + fileName)));
+				for (int j = 0; j <= curSheet.getLastRowNum(); j++) {
+					Row curRow = curSheet.getRow(j);
+					writer.write(">" + getNullSafeStringValue(curRow.getCell(0)));
+					writer.newLine();
+					if (StringUtils.isNotBlank(getNullSafeStringValue(curRow.getCell(1)))) {
+						writer.write(getNullSafeStringValue(curRow.getCell(1)));
+						writer.newLine();
+					}
+				}
+				writer.close();
+			}
+			resultado.close();
+			fisResultados.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 
-		// enriquecimentoRepository.deleteAllInBatch();
-		// resultadoRepository.deleteAllInBatch();
-		// goRepository.deleteAllInBatch();
-		// proteinaRepository.deleteAll();
-		// transcritoRepository.deleteAll();
-
+	private void updateTables() {
 		try {
 
 			FileInputStream fisResultados = new FileInputStream(
@@ -169,10 +189,10 @@ public class MainApp {
 					Proteina p = proteinaRepository.findByCodigo(codP);
 					if (p == null) {
 						p = new Proteina(codP);
-						p.setSequence(getNullSafeStringValue(curRow.getCell(8)));
-						p = proteinaRepository.save(p);
-						System.out.println("Inserindo proteina " + p);
 					}
+					p.setSequence(getNullSafeStringValue(curRow.getCell(8)));
+					p = proteinaRepository.save(p);
+					System.out.println("Inserindo proteina " + p);
 					t.setGeneName(getNullSafeStringValue(curRow.getCell(4)));
 					if (!t.getProteina().contains(p)) {
 						t.getProteina().add(p);
@@ -215,9 +235,65 @@ public class MainApp {
 			}
 			de.close();
 
+			fisFoldChange = new FileInputStream(new File("C://iria/tabelas-filhas/fold change.xlsx"));
+			foldChange = new XSSFWorkbook(fisFoldChange);
+			for (int i = 0; i < foldChange.getNumberOfSheets(); i++) {
+				XSSFSheet curSheet = foldChange.getSheetAt(i);
+				Iterator<Row> rowIterator = curSheet.iterator();
+				rowIterator.next();
+				while (rowIterator.hasNext()) {
+					Row curRow = rowIterator.next();
+					String codP = curRow.getCell(1).getStringCellValue();
+					Proteina p = proteinaRepository.findByCodigo(codP);
+					for (int j = 5; i < 8; i++) {
+						String entradas = getNullSafeStringValue(curRow.getCell(j));
+						if (StringUtils.isNotBlank(entradas)) {
+							for (String entrada : StringUtils.split(entradas, ";")) {
+								String codGo = StringUtils.substringBetween(entrada, "[", "]");
+								Go go = goRepository.findByCodigo(codGo);
+								if (go == null) {
+									go = goRepository.save(
+											new Go(codGo, StringUtils.trim(StringUtils.substringBefore(entrada, "[")),
+													i == 5 ? "P" : i == 6 ? "F" : "C"));
+									System.out.println("Inserindo GO " + go);
+								}
+								List<Enriquecimento> toSave = new ArrayList<>();
+								if()
+							}
+						}
+					}
+					List<Enriquecimento> toSave = new ArrayList<>();
+					for (String testSeq : StringUtils
+							.split(StringUtils.deleteWhitespace(curRow.getCell(6).getStringCellValue()), ",")) {
+						Proteina prot = proteinaRepository.findByCodigo(testSeq);
+						EnriquecimentoPk eId = new EnriquecimentoPk(go.getId(), prot.getId());
+						if (!enriquecimentoRepository.exists(eId)) {
+							Enriquecimento e = new Enriquecimento(eId,
+									getNullSafeBigDecimalValue(curRow.getCell(3), 30),
+									getNullSafeBigDecimalValue(curRow.getCell(4), 30));
+							toSave.add(e);
+							System.out.println("Inserindo enriquecimento " + e);
+						}
+					}
+					enriquecimentoRepository.save(toSave);
+				}
+			}
+			foldChange.close();
+
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	private void eraseAndFill() {
+
+		enriquecimentoRepository.deleteAllInBatch();
+		resultadoRepository.deleteAllInBatch();
+		goRepository.deleteAllInBatch();
+		proteinaRepository.deleteAll();
+		transcritoRepository.deleteAll();
+
+		updateTables();
 	}
 
 	private String getNullSafeStringValue(Cell cell) {
