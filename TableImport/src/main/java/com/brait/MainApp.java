@@ -244,7 +244,7 @@ public class MainApp {
 						t.setGeneName(geneName);
 						System.out.println("Atualizando transcrito " + t);
 					}
-					if (!t.getProteina().contains(p)) {
+					if (!containsByCodigo(t.getProteina(), p)) {
 						t.getProteina().add(p);
 						System.out.println("Adicionando " + p + " ao transcrito " + t);
 					}
@@ -258,13 +258,23 @@ public class MainApp {
 
 			processEnriq("EXCLUSIVOS");
 
-			System.out.println("Import terminado");
-
 			updateFoldChange();
+
+			System.out.println("Import terminado");
 
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	private boolean containsByCodigo(List<Proteina> list, Proteina p) {
+		Iterator<Proteina> i = list.iterator();
+		while (i.hasNext()) {
+			if (i.next().getCodigo().equals(p.getCodigo())) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public void processEnriq(String file) throws IOException {
@@ -290,8 +300,8 @@ public class MainApp {
 					goId = goRepository.findIdByCodigo(codGo);
 				}
 				List<Enriquecimento> toSave = new ArrayList<>();
-				List<String> protCodigos = Arrays.asList(
-						StringUtils.split(StringUtils.deleteWhitespace(curRow.getCell(6).getStringCellValue()), ","));
+				List<String> protCodigos = Arrays.asList(StringUtils
+						.split(StringUtils.deleteWhitespace(getNullSafeStringValue(curRow.getCell(6))), ","));
 				if (CollectionUtils.isNotEmpty(protCodigos)) {
 					List<Long> protIds = proteinaRepository.findIdsByCodigos(protCodigos);
 					for (Long protId : protIds) {
@@ -351,12 +361,28 @@ public class MainApp {
 								organism = OTHER;
 							}
 							if (StringUtils.isNotBlank(entradas)) {
-								for (String entrada : StringUtils.split(entradas, ";")) {
-									String codGo = StringUtils.substringBetween(entrada, "[", "]");
+								int matchesGo = StringUtils.countMatches(entradas, "[GO:");
+								if (matchesGo > 1 && matchesGo > StringUtils.countMatches(entradas, ";") + 1) {
+									entradas = StringUtils.replace(entradas, "]", "];");
+								}
+								String[] entradasNonTreated = StringUtils.split(entradas, ";");
+								List<String> entradasTreated = new ArrayList<String>();
+								for (int k = 0; k < entradasNonTreated.length; k++) {
+									if (StringUtils.isNotBlank(entradasNonTreated[k])) {
+										if (!StringUtils.contains(entradasNonTreated[k], "[GO:")) {
+											entradasNonTreated[k] = entradasNonTreated[k] + entradasNonTreated[k + 1];
+											entradasNonTreated[k + 1] = null;
+										}
+										entradasTreated.add(entradasNonTreated[k]);
+									}
+								}
+								for (String entrada : entradasTreated) {
+									String codGo = StringUtils.substringBetween(entrada, "[GO:", "]");
+									codGo = "GO:" + codGo;
 									Long goId;
 									if (!goRepository.existsByCodigo(codGo)) {
 										Go go = goRepository.save(new Go(codGo,
-												StringUtils.trim(StringUtils.substringBefore(entrada, "[")),
+												StringUtils.trim(StringUtils.substringBefore(entrada, "[GO:")),
 												j == 5 ? "P" : j == 6 ? "F" : "C", organism));
 										goId = go.getId();
 										System.out.println("Inserindo GO " + go);

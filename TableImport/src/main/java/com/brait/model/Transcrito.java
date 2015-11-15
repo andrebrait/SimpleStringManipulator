@@ -13,17 +13,20 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+
+import org.hibernate.validator.constraints.NotBlank;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @NoArgsConstructor
 @Entity
 @Table(name = "TRANSCRITO")
 @Data
+@ToString(callSuper = false, exclude = "proteina")
 @EqualsAndHashCode(of = "codigo")
 public class Transcrito implements Serializable {
 
@@ -34,7 +37,7 @@ public class Transcrito implements Serializable {
 	@Column(name = "ID")
 	private Long id;
 
-	@NotNull
+	@NotBlank
 	@Size(max = 20)
 	@Column(name = "CODIGO", length = 20, unique = true, nullable = false)
 	private String codigo;
