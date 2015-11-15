@@ -2,7 +2,6 @@ package com.brait;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -19,8 +18,8 @@ public class MainApp {
 
 	public static void main(String[] args) throws IOException {
 
-		Map<String, String> transcriptMap = new HashMap<String, String>();
-		List<String> transcriptOrigList = new ArrayList<String>();
+		Map<String, String> transcriptMap = new HashMap<>();
+		List<String> transcriptOrigList = new ArrayList<>();
 
 		FileInputStream fis = new FileInputStream(new File("C://tempIria/refazendo-0x10.xlsx"));
 
@@ -35,15 +34,13 @@ public class MainApp {
 			Row row = rowIterator.next();
 
 			transcriptOrigList.add(row.getCell(0).getStringCellValue());
-			
-			transcriptMap.put(row.getCell(2).getStringCellValue(),
-					row.getCell(3).getStringCellValue());
+
+			transcriptMap.put(row.getCell(2).getStringCellValue(), row.getCell(3).getStringCellValue());
 		}
 
 		myWorkBook.close();
 
-		FileOutputStream fis2 = new FileOutputStream(new File(
-				"C://tempIria/refazendo-0x10_ordenado.xlsx"));
+		FileOutputStream fis2 = new FileOutputStream(new File("C://tempIria/refazendo-0x10_ordenado.xlsx"));
 
 		XSSFWorkbook myWorkBook2 = new XSSFWorkbook();
 
@@ -62,9 +59,9 @@ public class MainApp {
 				row.createCell(3).setCellValue(transcriptMap.get(curTrans));
 			}
 		}
-		
+
 		myWorkBook2.write(fis2);
-		
+
 		myWorkBook2.close();
 
 	}

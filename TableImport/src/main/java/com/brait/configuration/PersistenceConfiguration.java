@@ -28,7 +28,7 @@ import com.zaxxer.hikari.HikariDataSource;
 @EnableJpaRepositories(basePackages = "com.brait.repository")
 public class PersistenceConfiguration {
 
-	private static String DB_HOSTNAME = "192.168.1.254", DB_PORT = "3306", DB_PASSWORD;
+	private static String DB_HOSTNAME = "127.0.0.1", DB_PORT = "53000", DB_PASSWORD;
 
 	public static String getDB_PASSWORD() {
 		return DB_PASSWORD;

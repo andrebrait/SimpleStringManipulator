@@ -17,11 +17,13 @@ import javax.validation.constraints.Size;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @NoArgsConstructor
 @Entity
 @Table(name = "PROTEINA")
 @Data
+@ToString(callSuper = false, exclude = { "transcrito", "enriquecimentos" })
 @EqualsAndHashCode(of = "codigo")
 public class Proteina implements Serializable {
 

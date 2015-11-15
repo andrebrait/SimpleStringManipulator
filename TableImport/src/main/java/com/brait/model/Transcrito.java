@@ -43,8 +43,13 @@ public class Transcrito implements Serializable {
 	@Column(name = "GENENAME", nullable = true, length = 300)
 	private String geneName;
 
-	@ManyToMany(fetch = FetchType.EAGER)
-	@JoinTable(name = "TRANSCRITO_PROTEINA", joinColumns = { @JoinColumn(name = "ID_TRANSCRITO") }, inverseJoinColumns = { @JoinColumn(name = "ID_PROTEINA") })
+	@Size(max = 50)
+	@Column(name = "ORGANISM", nullable = true, length = 50)
+	private String organism;
+
+	@ManyToMany(fetch = FetchType.LAZY)
+	@JoinTable(name = "TRANSCRITO_PROTEINA", joinColumns = { @JoinColumn(name = "ID_TRANSCRITO") },
+			inverseJoinColumns = { @JoinColumn(name = "ID_PROTEINA") })
 	private List<Proteina> proteina;
 
 	public Transcrito(String codigo) {
