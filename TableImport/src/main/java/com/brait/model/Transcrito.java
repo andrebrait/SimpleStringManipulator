@@ -12,6 +12,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.validation.constraints.Size;
 
@@ -26,7 +27,7 @@ import lombok.ToString;
 @Entity
 @Table(name = "TRANSCRITO")
 @Data
-@ToString(callSuper = false, exclude = "proteina")
+@ToString(callSuper = false, exclude = { "proteina", "resultados" })
 @EqualsAndHashCode(of = "codigo")
 public class Transcrito implements Serializable {
 
@@ -54,6 +55,9 @@ public class Transcrito implements Serializable {
 	@JoinTable(name = "TRANSCRITO_PROTEINA", joinColumns = { @JoinColumn(name = "ID_TRANSCRITO") },
 			inverseJoinColumns = { @JoinColumn(name = "ID_PROTEINA") })
 	private List<Proteina> proteina;
+
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "transcrito")
+	private List<Resultado> resultados;
 
 	public Transcrito(String codigo) {
 		super();

@@ -3,6 +3,7 @@ package com.brait;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -79,6 +80,7 @@ public class MainApp {
 			System.out.println("\t4 - Consultar Uniprot");
 			System.out.println("\t5 - Consultar Ensembl");
 			System.out.println("\t6 - Gerar FASTA");
+			System.out.println("\t7 - Completar tabelas filhas 6 e 7");
 			opt = reader.nextInt();
 
 			switch (opt) {
@@ -99,6 +101,9 @@ public class MainApp {
 					break;
 				case 6:
 					runObj = () -> main.gerarFasta();
+					break;
+				case 7:
+					runObj = () -> main.completaTabelasFilhas();
 					break;
 				default:
 					reader.close();
@@ -417,6 +422,90 @@ public class MainApp {
 		transcritoRepository.deleteAllInBatch();
 
 		updateTables();
+	}
+
+	private void completaTabelasFilhas() {
+		try {
+			System.out.println("Iniciando preenchimento das tabelas filhas 6 e 7");
+			FileInputStream fisTab6 = new FileInputStream(
+					new File("C://iria/tabelas-filhas/table 6 - Enriched differentially expressed.xlsx"));
+			XSSFWorkbook tab6 = new XSSFWorkbook(fisTab6);
+			for (int i = 0; i < tab6.getNumberOfSheets(); i++) {
+				XSSFSheet curSheet = tab6.getSheetAt(i);
+				String nomePasta = curSheet.getSheetName();
+				String[] partes = StringUtils.split(nomePasta);
+				String mudanca = partes[0].toUpperCase();
+				Long fase1 = Long.parseLong(StringUtils.substringBefore(partes[1], "x"));
+				Long fase2 = Long.parseLong(StringUtils.substringAfter(partes[1], "x"));
+				Iterator<Row> rowIterator = curSheet.iterator();
+				rowIterator.next(); // pula cabeçalho
+				while (rowIterator.hasNext()) {
+					Row curRow = rowIterator.next();
+					String term = StringUtils.upperCase(getNullSafeStringValue(curRow.getCell(1)));
+					if (StringUtils.isNotBlank(term)) {
+						StringBuilder sb = new StringBuilder();
+						for (String prot : proteinaRepository.findCodigoByResultadoGoTerm(fase1, fase2, mudanca,
+								term)) {
+							sb.append(prot);
+							sb.append(", ");
+						}
+						String toCell = sb.toString();
+						toCell = StringUtils.removeEnd(toCell, ", ");
+						curRow.getCell(2, Row.CREATE_NULL_AS_BLANK).setCellValue(toCell);
+					}
+				}
+			}
+
+			fisTab6.close();
+
+			FileOutputStream fout = new FileOutputStream(
+					new File("C://iria/tabelas-filhas/table 6 - Enriched differentially expressed.xlsx"));
+
+			tab6.write(fout);
+			tab6.close();
+			fout.close();
+
+			FileInputStream fisTab7 = new FileInputStream(
+					new File("C://iria/tabelas-filhas/table 7 - Exclusive expressed genes.xlsx"));
+			XSSFWorkbook tab7 = new XSSFWorkbook(fisTab7);
+			for (int i = 0; i < tab7.getNumberOfSheets(); i++) {
+				XSSFSheet curSheet = tab7.getSheetAt(i);
+				Long fase1 = i <= 2 || i == 4 ? 0L : 5L;
+				Long fase2 = i == 0 || i == 2 ? 5L : 10L;
+				String mudanca = "EXCL " + (i <= 1 || i == 3 ? fase1 : fase2);
+				Iterator<Row> rowIterator = curSheet.iterator();
+				rowIterator.next(); // pula cabeçalho
+				while (rowIterator.hasNext()) {
+					Row curRow = rowIterator.next();
+					String term = StringUtils.upperCase(getNullSafeStringValue(curRow.getCell(1)));
+					if (StringUtils.isNotBlank(term)) {
+						StringBuilder sb = new StringBuilder();
+						for (String prot : proteinaRepository.findCodigoByResultadoGoTerm(fase1, fase2, mudanca,
+								term)) {
+							sb.append(prot);
+							sb.append(", ");
+						}
+						String toCell = sb.toString();
+						toCell = StringUtils.removeEnd(toCell, ", ");
+						curRow.getCell(2, Row.CREATE_NULL_AS_BLANK).setCellValue(toCell);
+					}
+				}
+			}
+
+			fisTab7.close();
+
+			FileOutputStream fout7 = new FileOutputStream(
+					new File("C://iria/tabelas-filhas/table 7 - Exclusive expressed genes.xlsx"));
+
+			tab7.write(fout7);
+			tab7.close();
+			fout7.close();
+
+			System.out.println("Terminado!");
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	private String getNullSafeStringValue(Cell cell) {
